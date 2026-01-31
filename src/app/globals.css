@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --colombia-yellow: #FFD700;
+  --colombia-blue: #0033A0;
+  --colombia-red: #CE1126;
+}
+
+html { scroll-behavior: smooth; }
+body { background-color: #f8fafc; }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.number-ball { animation: bounce 0.5s ease-in-out; }
+.number-ball:nth-child(1) { animation-delay: 0ms; }
+.number-ball:nth-child(2) { animation-delay: 100ms; }
+.number-ball:nth-child(3) { animation-delay: 200ms; }
+.number-ball:nth-child(4) { animation-delay: 300ms; }
+.number-ball:nth-child(5) { animation-delay: 400ms; }
+.number-ball:nth-child(6) { animation-delay: 500ms; }
+
+.ad-container {
+  @apply bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400;
+  min-height: 90px;
+}
+.ad-container-large { min-height: 250px; }
+
+.gradient-colombia {
+  background: linear-gradient(135deg, var(--colombia-yellow) 0%, var(--colombia-blue) 50%, var(--colombia-red) 100%);
+}
+.gradient-header {
+  background: linear-gradient(90deg, var(--colombia-blue) 0%, #004FC4 100%);
+}
+
+.result-card { @apply transition-all duration-300 ease-in-out; }
+.result-card:hover { @apply shadow-lg transform -translate-y-1; }
