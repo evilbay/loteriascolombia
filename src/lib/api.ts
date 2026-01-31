@@ -141,6 +141,27 @@ export async function getResultHistory(lotteryId: string): Promise<LotteryResult
   }
 }
 
+export async function getFullResultHistory(lotteryId: string): Promise<LotteryResult[]> {
+  try {
+    const dbIds = frontendToDbMapping[lotteryId] || [lotteryId];
+    
+    const { data, error } = await supabase
+      .from('results')
+      .select('*')
+      .in('lottery_id', dbIds)
+      .order('draw_date', { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map(dbResult => convertDbResultToLotteryResult(dbResult as DbResult, lotteryId));
+  } catch (err) {
+    console.error(`Error fetching full history for ${lotteryId}:`, err);
+    return [];
+  }
+}
+
 export function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('es-CO', { 
     weekday: 'long', 

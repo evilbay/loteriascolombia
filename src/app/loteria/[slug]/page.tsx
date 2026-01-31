@@ -84,7 +84,16 @@ export default async function LotteryPage({ params }: Props) {
 
         {history.length > 0 && (
           <section className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Historial de Resultados</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Historial de Resultados</h2>
+              <Link 
+                href={`/loteria/${params.slug}/historial`}
+                className="text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity text-white"
+                style={{ backgroundColor: lotteryWithResult.color }}
+              >
+                Ver historial completo →
+              </Link>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
