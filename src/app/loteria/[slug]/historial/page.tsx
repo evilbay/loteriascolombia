@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import NumberBall from '@/components/NumberBall';
+import LotteryDisplay from '@/components/LotteryDisplay';
 import { getLotteryWithResults, formatDate, getFullResultHistory } from '@/lib/api';
 import { getLotteryBySlug, lotteries } from '@/lib/lotteries';
 import Link from 'next/link';
@@ -73,23 +73,12 @@ export default async function HistorialPage({ params }: Props) {
                       </div>
                       
                       <div className="flex flex-wrap gap-2 items-center">
-                        <span className="text-gray-500 text-sm mr-2">Números:</span>
-                        {result.numbers.map((num, idx) => (
-                          <NumberBall 
-                            key={idx} 
-                            number={num} 
-                            color={lotteryWithResult.color} 
-                            size="small" 
-                          />
-                        ))}
-                        {lotteryWithResult.hasSeries && result.series && (
-                          <span className="ml-4 text-sm">
-                            <span className="text-gray-500">Serie: </span>
-                            <span className="font-bold" style={{ color: lotteryWithResult.color }}>
-                              {result.series}
-                            </span>
-                          </span>
-                        )}
+                        <span className="text-gray-500 text-sm mr-2">Resultado:</span>
+                        <LotteryDisplay 
+                          lottery={lotteryWithResult} 
+                          result={result} 
+                          size="small" 
+                        />
                       </div>
                     </div>
 

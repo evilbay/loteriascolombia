@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import NumberBall from '@/components/NumberBall';
+import LotteryDisplay from '@/components/LotteryDisplay';
 import { getLotteryWithResults, formatDate, getResultHistory } from '@/lib/api';
 import { getLotteryBySlug, lotteries } from '@/lib/lotteries';
 import Link from 'next/link';
@@ -54,18 +54,12 @@ export default async function LotteryPage({ params }: Props) {
             <div>
               <p className="text-gray-500 mb-4">{formatDate(lotteryWithResult.latestResult.date)}</p>
               <div className="flex flex-wrap gap-3 mb-6">
-                {lotteryWithResult.latestResult.numbers.map((num, idx) => (
-                  <NumberBall key={idx} number={num} color={lotteryWithResult.color} size="large" />
-                ))}
+                <LotteryDisplay 
+                  lottery={lotteryWithResult} 
+                  result={lotteryWithResult.latestResult} 
+                  size="large" 
+                />
               </div>
-              {lotteryWithResult.hasSeries && lotteryWithResult.latestResult.series && (
-                <div className="mb-4">
-                  <span className="text-gray-500">Serie: </span>
-                  <span className="font-bold text-2xl" style={{ color: lotteryWithResult.color }}>
-                    {lotteryWithResult.latestResult.series}
-                  </span>
-                </div>
-              )}
               {lotteryWithResult.latestResult.prize && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <span className="text-gray-500">Premio Mayor: </span>
@@ -99,8 +93,10 @@ export default async function LotteryPage({ params }: Props) {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-2">Fecha</th>
-                    <th className="text-left py-3 px-2">Números</th>
-                    {lotteryWithResult.hasSeries && <th className="text-left py-3 px-2">Serie</th>}
+                    <th className="text-left py-3 px-2">Resultado</th>
+                    {lotteryWithResult.hasSeries && lotteryWithResult.lotteryType !== 'traditional' && (
+                      <th className="text-left py-3 px-2">Serie</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -108,13 +104,15 @@ export default async function LotteryPage({ params }: Props) {
                     <tr key={result.id} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-2 text-gray-600">{formatDate(result.date)}</td>
                       <td className="py-3 px-2">
-                        <div className="flex gap-2">
-                          {result.numbers.map((num, idx) => (
-                            <NumberBall key={idx} number={num} color={lotteryWithResult.color} size="small" />
-                          ))}
-                        </div>
+                        <LotteryDisplay 
+                          lottery={lotteryWithResult} 
+                          result={result} 
+                          size="small" 
+                        />
                       </td>
-                      {lotteryWithResult.hasSeries && <td className="py-3 px-2 font-semibold">{result.series}</td>}
+                      {lotteryWithResult.hasSeries && lotteryWithResult.lotteryType !== 'traditional' && (
+                        <td className="py-3 px-2 font-semibold">{result.series}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
