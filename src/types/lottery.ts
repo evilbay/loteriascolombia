@@ -6,6 +6,7 @@ export interface LotteryResult {
   series?: string;
   prize?: string;
   createdAt: string;
+  drawNumber?: string;
 }
 
 export interface Lottery {

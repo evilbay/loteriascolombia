@@ -1,24 +1,114 @@
 import { LotteryResult, LotteryWithResult } from '@/types/lottery';
 import { lotteries, getLotteryBySlug } from './lotteries';
+import { supabase, DbResult } from './supabase';
 
-// Mock data - En producción esto vendría de una API/base de datos
-const mockResults: Record<string, LotteryResult> = {
-  'loteria-de-bogota': { id: '1', lotteryId: 'loteria-de-bogota', date: new Date().toISOString().split('T')[0], numbers: [4, 5, 6, 7], series: '123', prize: '$12.000.000.000', createdAt: new Date().toISOString() },
-  'loteria-de-medellin': { id: '2', lotteryId: 'loteria-de-medellin', date: new Date().toISOString().split('T')[0], numbers: [8, 9, 0, 1], series: '456', prize: '$8.000.000.000', createdAt: new Date().toISOString() },
-  'baloto': { id: '3', lotteryId: 'baloto', date: new Date().toISOString().split('T')[0], numbers: [5, 12, 23, 34, 41, 43], prize: '$45.000.000.000', createdAt: new Date().toISOString() },
+// Mapeo de IDs del frontend a IDs de la base de datos
+const frontendToDbMapping: Record<string, string[]> = {
+  'baloto': ['baloto'],
+  'baloto-revancha': ['baloto-revancha'],
+  'loteria-de-bogota': ['loteria-bogota', 'bogota'],
+  'loteria-de-medellin': ['loteria-medellin', 'medellin'],
+  'loteria-de-cundinamarca': ['loteria-cundinamarca', 'cundinamarca'],
+  'loteria-cruz-roja': ['cruz-roja'],
+  'loteria-del-valle': ['loteria-valle', 'valle'],
+  'loteria-de-boyaca': ['loteria-boyaca', 'boyaca'],
+  'loteria-de-santander': ['loteria-santander', 'santander'],
+  'loteria-del-cauca': ['loteria-cauca', 'cauca'],
+  'loteria-del-huila': ['loteria-huila', 'huila'],
+  'loteria-de-manizales': ['loteria-manizales', 'manizales'],
+  'loteria-del-meta': ['loteria-meta', 'meta'],
+  'loteria-del-quindio': ['loteria-quindio', 'quindio'],
+  'loteria-de-risaralda': ['loteria-risaralda', 'risaralda'],
+  'loteria-del-tolima': ['loteria-tolima', 'tolima'],
 };
 
+function convertDbResultToLotteryResult(dbResult: DbResult, frontendLotteryId: string): LotteryResult {
+  // Construir array de números
+  let numbers = [...(dbResult.numbers.main || [])];
+  
+  // Para Baloto, agregar la superbalota al array de números
+  if (dbResult.numbers.superbalota !== undefined) {
+    numbers.push(dbResult.numbers.superbalota);
+  }
+
+  return {
+    id: dbResult.id.toString(),
+    lotteryId: frontendLotteryId,
+    date: dbResult.draw_date,
+    numbers,
+    series: dbResult.numbers.series,
+    prize: undefined, // Se puede agregar desde prizes si está disponible
+    createdAt: dbResult.created_at,
+    drawNumber: dbResult.draw_number,
+  };
+}
+
 export async function getLatestResult(lotteryId: string): Promise<LotteryResult | null> {
-  await new Promise(r => setTimeout(r, 50));
-  return mockResults[lotteryId] || null;
+  try {
+    // Obtener los posibles IDs de base de datos para este ID de frontend
+    const dbIds = frontendToDbMapping[lotteryId] || [lotteryId];
+    
+    // Buscar en Supabase
+    const { data, error } = await supabase
+      .from('results')
+      .select('*')
+      .in('lottery_id', dbIds)
+      .order('draw_date', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      console.log(`No result found for ${lotteryId}:`, error?.message);
+      return null;
+    }
+
+    return convertDbResultToLotteryResult(data as DbResult, lotteryId);
+  } catch (err) {
+    console.error(`Error fetching result for ${lotteryId}:`, err);
+    return null;
+  }
 }
 
 export async function getLatestResults(): Promise<LotteryWithResult[]> {
   const results: LotteryWithResult[] = [];
-  for (const lottery of lotteries) {
-    const result = await getLatestResult(lottery.id);
-    results.push({ ...lottery, latestResult: result || undefined });
+  
+  // Obtener todos los resultados más recientes de Supabase
+  const { data: dbResults, error } = await supabase
+    .from('results')
+    .select('*')
+    .order('draw_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching results:', error);
+    // Retornar loterías sin resultados en caso de error
+    return lotteries.map(lottery => ({ ...lottery, latestResult: undefined }));
   }
+
+  // Crear un mapa de resultados más recientes por lottery_id de DB
+  const latestByDbId = new Map<string, DbResult>();
+  for (const result of (dbResults || [])) {
+    if (!latestByDbId.has(result.lottery_id)) {
+      latestByDbId.set(result.lottery_id, result);
+    }
+  }
+
+  // Mapear cada lotería del frontend a su resultado
+  for (const lottery of lotteries) {
+    const dbIds = frontendToDbMapping[lottery.id] || [lottery.id];
+    let latestResult: LotteryResult | undefined;
+
+    // Buscar el resultado más reciente entre los posibles IDs de DB
+    for (const dbId of dbIds) {
+      const dbResult = latestByDbId.get(dbId);
+      if (dbResult) {
+        latestResult = convertDbResultToLotteryResult(dbResult, lottery.id);
+        break;
+      }
+    }
+
+    results.push({ ...lottery, latestResult });
+  }
+
   return results;
 }
 
@@ -30,12 +120,34 @@ export async function getLotteryWithResults(slug: string): Promise<LotteryWithRe
 }
 
 export async function getResultHistory(lotteryId: string): Promise<LotteryResult[]> {
-  const latest = await getLatestResult(lotteryId);
-  return latest ? [latest] : [];
+  try {
+    const dbIds = frontendToDbMapping[lotteryId] || [lotteryId];
+    
+    const { data, error } = await supabase
+      .from('results')
+      .select('*')
+      .in('lottery_id', dbIds)
+      .order('draw_date', { ascending: false })
+      .limit(30);
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map(dbResult => convertDbResultToLotteryResult(dbResult as DbResult, lotteryId));
+  } catch (err) {
+    console.error(`Error fetching history for ${lotteryId}:`, err);
+    return [];
+  }
 }
 
 export function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return new Date(dateString).toLocaleDateString('es-CO', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
 }
 
 export function formatLotteryNumber(num: number): string {
