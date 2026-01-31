@@ -31,7 +31,7 @@ export default function ResultCard({ lottery, featured = false }: ResultCardProp
             <>
               <p className="text-sm text-gray-500 mb-3">{formatDate(lottery.latestResult.date)}</p>
               
-              {/* Usar el nuevo sistema de visualización */}
+              {/* Sistema de visualización diferenciado */}
               <div className="mb-3">
                 <LotteryDisplay 
                   lottery={lottery} 
