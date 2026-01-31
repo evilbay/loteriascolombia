@@ -9,6 +9,8 @@ export interface LotteryResult {
   drawNumber?: string;
 }
 
+export type LotteryType = 'traditional' | 'baloto' | 'astro';
+
 export interface Lottery {
   id: string;
   name: string;
@@ -22,6 +24,7 @@ export interface Lottery {
   numbersCount: number;
   hasSeries: boolean;
   isActive: boolean;
+  lotteryType?: LotteryType; // Nuevo campo para determinar el tipo de visualización
 }
 
 export type DayOfWeek = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' | 'sabado' | 'domingo';
