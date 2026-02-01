@@ -32,3 +32,13 @@ export function getTodayLotteries(): Lottery[] {
   const days: DayOfWeek[] = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
   return getLotteriesByDay(days[new Date().getDay()]);
 }
+
+export function getLotteryLogo(lotteryId: string): string | null {
+  const logoMap: Record<string, string> = {
+    'baloto': '/logos/baloto.png',
+    'loteria-de-bogota': '/logos/loteria-de-bogota.png',
+    'super-astro': '/logos/super-astro.png'
+  };
+  
+  return logoMap[lotteryId] || null;
+}

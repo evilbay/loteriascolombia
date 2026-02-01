@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import LotteryDisplay from '@/components/LotteryDisplay';
 import { getLotteryWithResults, formatDate, getResultHistory } from '@/lib/api';
-import { getLotteryBySlug, lotteries } from '@/lib/lotteries';
+import { getLotteryBySlug, lotteries, getLotteryLogo } from '@/lib/lotteries';
 import Link from 'next/link';
 
 interface Props { params: { slug: string } }
@@ -37,7 +37,16 @@ export default async function LotteryPage({ params }: Props) {
           <Link href="/" className="inline-flex items-center text-white/80 hover:text-white mb-4">
             ← Volver
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{lotteryWithResult.name}</h1>
+          <div className="flex items-center gap-4 mb-2">
+            {getLotteryLogo(lotteryWithResult.id) && (
+              <img 
+                src={getLotteryLogo(lotteryWithResult.id)!} 
+                alt={`Logo ${lotteryWithResult.name}`}
+                className="w-16 h-16 md:w-20 md:h-20 object-contain bg-white/10 rounded-xl p-2"
+              />
+            )}
+            <h1 className="text-3xl md:text-4xl font-bold">{lotteryWithResult.name}</h1>
+          </div>
           <p className="text-white/80">{lotteryWithResult.description}</p>
           <div className="flex flex-wrap gap-4 mt-4 text-sm">
             <span className="bg-white/20 px-3 py-1 rounded-full">📍 {lotteryWithResult.region}</span>

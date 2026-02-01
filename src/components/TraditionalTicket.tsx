@@ -15,22 +15,22 @@ export default function TraditionalTicket({
 }: TraditionalTicketProps) {
   const sizeClasses = {
     small: {
-      container: 'min-w-[120px] h-12',
-      number: 'text-lg font-black',
+      container: 'min-w-[100px] sm:min-w-[120px] h-12',
+      number: 'text-base sm:text-lg font-black',
       series: 'text-sm font-bold',
       label: 'text-xs'
     },
     medium: {
-      container: 'min-w-[160px] h-16',
-      number: 'text-2xl font-black',
-      series: 'text-lg font-bold',
-      label: 'text-sm'
+      container: 'min-w-[120px] sm:min-w-[160px] h-14 sm:h-16',
+      number: 'text-xl sm:text-2xl font-black',
+      series: 'text-base sm:text-lg font-bold',
+      label: 'text-xs sm:text-sm'
     },
     large: {
-      container: 'min-w-[200px] h-20',
-      number: 'text-3xl font-black',
-      series: 'text-xl font-bold',
-      label: 'text-base'
+      container: 'min-w-[140px] sm:min-w-[200px] h-16 sm:h-20',
+      number: 'text-2xl sm:text-3xl font-black',
+      series: 'text-lg sm:text-xl font-bold',
+      label: 'text-sm sm:text-base'
     }
   };
 
@@ -41,7 +41,7 @@ export default function TraditionalTicket({
   const currentSize = sizeClasses[size];
 
   return (
-    <div className="flex gap-3 items-center">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
       {/* Billete principal - estilo profesional */}
       <div className="relative">
         {showLabels && (
@@ -54,16 +54,18 @@ export default function TraditionalTicket({
           style={{ 
             borderColor: color,
             background: `linear-gradient(135deg, 
-              white 0%, 
-              rgba(255,255,255,0.95) 25%, 
-              rgba(248,249,250,0.9) 50%, 
-              rgba(241,245,249,0.85) 75%, 
-              #f8fafc 100%)`,
+              #ffffff 0%, 
+              #f9fafb 20%, 
+              #f3f4f6 40%, 
+              #e5e7eb 60%, 
+              #d1d5db 80%, 
+              #f9fafb 100%)`,
             boxShadow: `
-              0 20px 40px -12px rgba(0,0,0,0.25),
-              0 8px 16px -8px ${color}40,
-              inset 0 1px 0 rgba(255,255,255,0.6),
-              inset 0 -1px 0 rgba(0,0,0,0.1)
+              0 25px 50px -12px rgba(0,0,0,0.35),
+              0 12px 24px -8px ${color}60,
+              inset 0 1px 0 rgba(255,255,255,0.8),
+              inset 0 -1px 0 rgba(0,0,0,0.15),
+              0 0 0 1px ${color}20
             `
           }}
         >
@@ -110,16 +112,18 @@ export default function TraditionalTicket({
             style={{ 
               borderColor: color,
               background: `linear-gradient(135deg, 
-                white 0%, 
-                rgba(255,255,255,0.95) 25%, 
-                rgba(248,249,250,0.9) 50%, 
-                rgba(241,245,249,0.85) 75%, 
-                #f8fafc 100%)`,
+                #ffffff 0%, 
+                #f9fafb 20%, 
+                #f3f4f6 40%, 
+                #e5e7eb 60%, 
+                #d1d5db 80%, 
+                #f9fafb 100%)`,
               boxShadow: `
-                0 20px 40px -12px rgba(0,0,0,0.25),
-                0 8px 16px -8px ${color}40,
-                inset 0 1px 0 rgba(255,255,255,0.6),
-                inset 0 -1px 0 rgba(0,0,0,0.1)
+                0 25px 50px -12px rgba(0,0,0,0.35),
+                0 12px 24px -8px ${color}60,
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.15),
+                0 0 0 1px ${color}20
               `
             }}
           >

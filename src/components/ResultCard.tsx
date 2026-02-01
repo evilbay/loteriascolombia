@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { LotteryWithResult, Lottery } from '@/types/lottery';
 import LotteryDisplay from './LotteryDisplay';
 import { formatDate } from '@/lib/api';
+import { getLotteryLogo } from '@/lib/lotteries';
 
 interface ResultCardProps {
   lottery: LotteryWithResult | Lottery;
@@ -21,7 +22,16 @@ export default function ResultCard({ lottery, featured = false }: ResultCardProp
       <div className={`result-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow ${featured ? 'border-2 border-colombia-yellow' : ''}`}>
         <div className="px-4 py-3 text-white" style={{ backgroundColor: lottery.color }}>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold truncate">{lottery.name}</h3>
+            <div className="flex items-center gap-2">
+              {getLotteryLogo(lottery.id) && (
+                <img 
+                  src={getLotteryLogo(lottery.id)!} 
+                  alt={`Logo ${lottery.name}`}
+                  className="w-8 h-8 object-contain bg-white/10 rounded p-1"
+                />
+              )}
+              <h3 className="font-semibold truncate">{lottery.name}</h3>
+            </div>
             {featured && <span className="bg-white/20 text-xs px-2 py-1 rounded-full">Hoy</span>}
           </div>
         </div>
