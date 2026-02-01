@@ -5,6 +5,9 @@ import { getLotteryWithResults, formatDate, getResultHistory } from '@/lib/api';
 import { getLotteryBySlug, lotteries, getLotteryLogo } from '@/lib/lotteries';
 import Link from 'next/link';
 
+// ISR: Revalidar cada 60 segundos para mostrar datos frescos
+export const revalidate = 60;
+
 interface Props { params: { slug: string } }
 
 export async function generateStaticParams() {
