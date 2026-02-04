@@ -72,3 +72,4 @@ export function getLotteryLogo(lotteryId: string): string | null {
   
   return logoMap[lotteryId] || null;
 }
+// Build trigger: 1770220025
