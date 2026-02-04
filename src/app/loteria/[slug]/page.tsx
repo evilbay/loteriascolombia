@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import LotteryDisplay from '@/components/LotteryDisplay';
+import SecosDisplay from '@/components/SecosDisplay';
 import { getLotteryWithResults, formatDate, getResultHistory } from '@/lib/api';
 import { getLotteryBySlug, lotteries, getLotteryLogo } from '@/lib/lotteries';
 import Link from 'next/link';
@@ -32,6 +33,15 @@ export default async function LotteryPage({ params }: Props) {
     lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles',
     jueves: 'Jueves', viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
   };
+
+  // Determinar si es lotería tradicional (con secos)
+  const isTraditional = lotteryWithResult.lotteryType === 'traditional' || 
+    (lotteryWithResult.hasSeries && lotteryWithResult.numbersCount === 4);
+  
+  // Obtener número ganador para secos
+  const numeroGanador = lotteryWithResult.latestResult?.numbers?.main?.join('') || 
+    lotteryWithResult.latestResult?.number || '';
+  const serie = lotteryWithResult.latestResult?.series || '';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,10 +83,21 @@ export default async function LotteryPage({ params }: Props) {
                 />
               </div>
               {lotteryWithResult.latestResult.prize && (
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <span className="text-gray-500">Premio Mayor: </span>
                   <span className="font-bold text-2xl text-green-600">{lotteryWithResult.latestResult.prize}</span>
                 </div>
+              )}
+              
+              {/* Secos y Aproximaciones - Solo para loterías tradicionales */}
+              {isTraditional && numeroGanador && (
+                <SecosDisplay
+                  resultadoId={lotteryWithResult.latestResult.id || ''}
+                  lotteryId={lotteryWithResult.id}
+                  numeroGanador={numeroGanador}
+                  serie={serie}
+                  variant="compact"
+                />
               )}
             </div>
           ) : (
@@ -85,10 +106,6 @@ export default async function LotteryPage({ params }: Props) {
             </div>
           )}
         </section>
-
-        {/* PUBLICIDAD DESACTIVADA
-        <div className="ad-container ad-container-large mb-8"><span>Espacio publicitario</span></div>
-        */}
 
         {history.length > 0 && (
           <section className="bg-white rounded-xl shadow-lg p-6 md:p-8">
