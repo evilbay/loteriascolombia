@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import LotteryDisplay from '@/components/LotteryDisplay';
 import SecosDisplay from '@/components/SecosDisplay';
+import VerificadorTradicional from '@/components/VerificadorTradicional';
+import VerificadorBaloto from '@/components/VerificadorBaloto';
+import BalotoRevanchaCard from '@/components/BalotoRevanchaCard';
 import { getLotteryWithResults, formatDate, getResultHistory } from '@/lib/api';
 import { getLotteryBySlug, lotteries, getLotteryLogo } from '@/lib/lotteries';
 import Link from 'next/link';
@@ -34,13 +37,37 @@ export default async function LotteryPage({ params }: Props) {
     jueves: 'Jueves', viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
   };
 
-  // Determinar si es lotería tradicional (con secos)
-  const isTraditional = lotteryWithResult.lotteryType === 'traditional' || 
-    (lotteryWithResult.hasSeries && lotteryWithResult.numbersCount === 4);
+  // Determinar tipo de lotería
+  const isBaloto = lotteryWithResult.id === 'baloto' || lotteryWithResult.id === 'baloto-revancha';
+  const isTraditional = !isBaloto && (
+    lotteryWithResult.lotteryType === 'traditional' || 
+    (lotteryWithResult.hasSeries && lotteryWithResult.numbersCount === 4)
+  );
   
   // Obtener número ganador para secos
   const numeroGanador = lotteryWithResult.latestResult?.numbers?.join('') || '';
   const serie = lotteryWithResult.latestResult?.series || '';
+
+  // Preparar datos para verificadores
+  const resultadosTradicional = history.map(r => ({
+    id: r.id,
+    fecha: r.date,
+    numero: r.numbers[0]?.toString().padStart(4, '0') || '',
+    serie: r.series,
+    secos: [], // TODO: Cargar secos reales de BD
+  }));
+
+  const resultadosBaloto = history.map(r => ({
+    id: r.id,
+    fecha: r.date,
+    numeros: r.numbers.slice(0, 5),
+    superbalota: r.numbers[5] || 0,
+    revancha: r.numbers[6] || r.numbers[5] || 0, // Por ahora usar el mismo, idealmente separados
+  }));
+
+  // Para Baloto, obtener también resultados de Revancha si existen
+  const latestBalotoResult = lotteryWithResult.latestResult;
+  const hasRevancha = isBaloto && latestBalotoResult && latestBalotoResult.numbers.length >= 6;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,41 +96,75 @@ export default async function LotteryPage({ params }: Props) {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <section className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Último Resultado</h2>
-          {lotteryWithResult.latestResult ? (
-            <div>
-              <p className="text-gray-500 mb-4">{formatDate(lotteryWithResult.latestResult.date)}</p>
-              <div className="flex flex-wrap gap-3 mb-6">
-                <LotteryDisplay 
-                  lottery={lotteryWithResult} 
-                  result={lotteryWithResult.latestResult} 
-                  size="large" 
-                />
-              </div>
-              {lotteryWithResult.latestResult.prize && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <span className="text-gray-500">Premio Mayor: </span>
-                  <span className="font-bold text-2xl text-green-600">{lotteryWithResult.latestResult.prize}</span>
+        {/* Card especial para Baloto + Revancha */}
+        {isBaloto && latestBalotoResult && latestBalotoResult.numbers.length >= 6 && (
+          <section className="mb-8">
+            <BalotoRevanchaCard
+              fecha={latestBalotoResult.date}
+              sorteoNumero={latestBalotoResult.drawNumber}
+              numeros={latestBalotoResult.numbers.slice(0, 5)}
+              superbalota={latestBalotoResult.numbers[5]}
+              revancha={latestBalotoResult.numbers[6] || latestBalotoResult.numbers[5]}
+              acumuladoBaloto={latestBalotoResult.prize}
+              featured
+            />
+          </section>
+        )}
+
+        {/* Resultado estándar (para loterías tradicionales o cuando Baloto no tiene el formato esperado) */}
+        {(!isBaloto || !latestBalotoResult || latestBalotoResult.numbers.length < 6) && (
+          <section className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Último Resultado</h2>
+            {lotteryWithResult.latestResult ? (
+              <div>
+                <p className="text-gray-500 mb-4">{formatDate(lotteryWithResult.latestResult.date)}</p>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <LotteryDisplay 
+                    lottery={lotteryWithResult} 
+                    result={lotteryWithResult.latestResult} 
+                    size="large" 
+                  />
                 </div>
-              )}
-              
-              {/* Secos y Aproximaciones - Solo para loterías tradicionales */}
-              {isTraditional && numeroGanador && (
-                <SecosDisplay
-                  resultadoId={lotteryWithResult.latestResult.id || ''}
-                  lotteryId={lotteryWithResult.id}
-                  numeroGanador={numeroGanador}
-                  serie={serie}
-                  variant="compact"
-                />
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No hay resultados disponibles aún</p>
-            </div>
-          )}
+                {lotteryWithResult.latestResult.prize && (
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <span className="text-gray-500">Premio Mayor: </span>
+                    <span className="font-bold text-2xl text-green-600">{lotteryWithResult.latestResult.prize}</span>
+                  </div>
+                )}
+                
+                {/* Secos y Aproximaciones - Solo para loterías tradicionales */}
+                {isTraditional && numeroGanador && (
+                  <SecosDisplay
+                    resultadoId={lotteryWithResult.latestResult.id || ''}
+                    lotteryId={lotteryWithResult.id}
+                    numeroGanador={numeroGanador}
+                    serie={serie}
+                    variant="compact"
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No hay resultados disponibles aún</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Verificador de números */}
+        <section className="mb-8">
+          {isBaloto ? (
+            <VerificadorBaloto 
+              resultados={resultadosBaloto}
+            />
+          ) : isTraditional && resultadosTradicional.length > 0 ? (
+            <VerificadorTradicional
+              lotteryId={lotteryWithResult.id}
+              lotteryName={lotteryWithResult.name}
+              color={lotteryWithResult.color}
+              resultados={resultadosTradicional}
+            />
+          ) : null}
         </section>
 
         {history.length > 0 && (
@@ -124,7 +185,7 @@ export default async function LotteryPage({ params }: Props) {
                   <tr className="border-b">
                     <th className="text-left py-3 px-2">Fecha</th>
                     <th className="text-left py-3 px-2">Resultado</th>
-                    {lotteryWithResult.hasSeries && lotteryWithResult.lotteryType !== 'traditional' && (
+                    {lotteryWithResult.hasSeries && !isBaloto && (
                       <th className="text-left py-3 px-2">Serie</th>
                     )}
                   </tr>
@@ -140,7 +201,7 @@ export default async function LotteryPage({ params }: Props) {
                           size="small" 
                         />
                       </td>
-                      {lotteryWithResult.hasSeries && lotteryWithResult.lotteryType !== 'traditional' && (
+                      {lotteryWithResult.hasSeries && !isBaloto && (
                         <td className="py-3 px-2 font-semibold">{result.series}</td>
                       )}
                     </tr>

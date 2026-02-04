@@ -1,5 +1,6 @@
 import ResultCard from '@/components/ResultCard';
 import SearchBox from '@/components/SearchBox';
+import BalotoRevanchaCard from '@/components/BalotoRevanchaCard';
 import { getLatestResults } from '@/lib/api';
 import { getTodayLotteries } from '@/lib/lotteries';
 
@@ -8,6 +9,20 @@ export const revalidate = 60;
 export default async function HomePage() {
   const lotteriesWithResults = await getLatestResults();
   const todayLotteries = getTodayLotteries();
+
+  // Buscar Baloto para card unificada
+  const baloto = lotteriesWithResults.find(l => l.id === 'baloto');
+  const balotoRevancha = lotteriesWithResults.find(l => l.id === 'baloto-revancha');
+  const showBalotoUnificado = baloto?.latestResult && baloto.latestResult.numbers.length >= 6;
+
+  // Filtrar Baloto y Revancha de las listas si vamos a mostrar card unificada
+  const filteredTodayLotteries = showBalotoUnificado 
+    ? todayLotteries.filter(l => l.id !== 'baloto' && l.id !== 'baloto-revancha')
+    : todayLotteries;
+  
+  const filteredLotteriesWithResults = showBalotoUnificado
+    ? lotteriesWithResults.filter(l => l.id !== 'baloto' && l.id !== 'baloto-revancha')
+    : lotteriesWithResults;
 
   return (
     <div className="min-h-screen">
@@ -25,20 +40,42 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Card unificada Baloto + Revancha */}
+      {showBalotoUnificado && baloto?.latestResult && (
+        <section className="container mx-auto px-4 py-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+            <span className="text-2xl mr-2">🎱</span>
+            Baloto + Revancha
+          </h2>
+          <div className="max-w-lg mx-auto">
+            <BalotoRevanchaCard
+              fecha={baloto.latestResult.date}
+              sorteoNumero={baloto.latestResult.drawNumber}
+              numeros={baloto.latestResult.numbers.slice(0, 5)}
+              superbalota={baloto.latestResult.numbers[5]}
+              revancha={baloto.latestResult.numbers[6] || baloto.latestResult.numbers[5]}
+              acumuladoBaloto={baloto.latestResult.prize}
+              acumuladoRevancha={balotoRevancha?.latestResult?.prize}
+              featured
+            />
+          </div>
+        </section>
+      )}
+
       {/* PUBLICIDAD DESACTIVADA 
       <div className="container mx-auto px-4 py-4">
         <div className="ad-container"><span>Espacio publicitario</span></div>
       </div>
       */}
 
-      {todayLotteries.length > 0 && (
+      {filteredTodayLotteries.length > 0 && (
         <section className="container mx-auto px-4 py-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
             <span className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span>
             Sorteos de Hoy
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {todayLotteries.map((lottery) => {
+            {filteredTodayLotteries.map((lottery) => {
               const withResult = lotteriesWithResults.find(l => l.id === lottery.id);
               return <ResultCard key={lottery.id} lottery={withResult || lottery} featured />;
             })}
@@ -49,7 +86,7 @@ export default async function HomePage() {
       <section className="container mx-auto px-4 py-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Últimos Resultados</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {lotteriesWithResults.map((lottery) => (
+          {filteredLotteriesWithResults.map((lottery) => (
             <ResultCard key={lottery.id} lottery={lottery} />
           ))}
         </div>
