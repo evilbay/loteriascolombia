@@ -39,8 +39,7 @@ export default async function LotteryPage({ params }: Props) {
     (lotteryWithResult.hasSeries && lotteryWithResult.numbersCount === 4);
   
   // Obtener número ganador para secos
-  const numeroGanador = lotteryWithResult.latestResult?.numbers?.main?.join('') || 
-    lotteryWithResult.latestResult?.number || '';
+  const numeroGanador = lotteryWithResult.latestResult?.numbers?.join('') || '';
   const serie = lotteryWithResult.latestResult?.series || '';
 
   return (
