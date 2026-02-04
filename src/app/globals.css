@@ -24,11 +24,13 @@ body { background-color: #f8fafc; }
 .number-ball:nth-child(5) { animation-delay: 400ms; }
 .number-ball:nth-child(6) { animation-delay: 500ms; }
 
+/* PUBLICIDAD DESACTIVADA
 .ad-container {
   @apply bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400;
   min-height: 90px;
 }
 .ad-container-large { min-height: 250px; }
+*/
 
 .gradient-colombia {
   background: linear-gradient(135deg, var(--colombia-yellow) 0%, var(--colombia-blue) 50%, var(--colombia-red) 100%);

@@ -25,9 +25,11 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* PUBLICIDAD DESACTIVADA 
       <div className="container mx-auto px-4 py-4">
         <div className="ad-container"><span>Espacio publicitario</span></div>
       </div>
+      */}
 
       {todayLotteries.length > 0 && (
         <section className="container mx-auto px-4 py-6">
@@ -53,9 +55,11 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* PUBLICIDAD DESACTIVADA
       <div className="container mx-auto px-4 py-4">
         <div className="ad-container ad-container-large"><span>Espacio publicitario</span></div>
       </div>
+      */}
 
       <section className="bg-gray-50 py-12">
         <div className="container mx-auto px-4">

@@ -86,7 +86,9 @@ export default async function LotteryPage({ params }: Props) {
           )}
         </section>
 
+        {/* PUBLICIDAD DESACTIVADA
         <div className="ad-container ad-container-large mb-8"><span>Espacio publicitario</span></div>
+        */}
 
         {history.length > 0 && (
           <section className="bg-white rounded-xl shadow-lg p-6 md:p-8">

@@ -102,10 +102,11 @@ export default async function HistorialPage({ params }: Props) {
           )}
         </section>
 
-        {/* Ad space */}
+        {/* PUBLICIDAD DESACTIVADA
         <div className="ad-container ad-container-large mt-8">
           <span>Espacio publicitario</span>
         </div>
+        */}
 
         {/* Link de regreso */}
         <div className="mt-8 text-center">
