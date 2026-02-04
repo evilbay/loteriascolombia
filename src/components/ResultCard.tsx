@@ -16,33 +16,56 @@ export default function ResultCard({ lottery, featured = false }: ResultCardProp
      (lottery.id === 'baloto' || lottery.id === 'baloto-revancha') ? 'baloto' : 
      lottery.id === 'super-astro' ? 'astro' : 'traditional');
   const isTraditionalLottery = lotteryType === 'traditional';
+  const isBaloto = lottery.id === 'baloto' || lottery.id === 'baloto-revancha';
   
   return (
     <Link href={`/loteria/${lottery.slug}`}>
-      <div className={`result-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow ${featured ? 'border-2 border-colombia-yellow' : ''}`}>
-        <div className="px-4 py-3 text-white" style={{ backgroundColor: lottery.color }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <article className={`
+        result-card 
+        bg-white rounded-xl 
+        shadow-md hover:shadow-xl 
+        overflow-hidden 
+        transition-all duration-200
+        ${featured ? 'ring-2 ring-colombia-yellow ring-offset-2' : ''}
+      `}>
+        {/* Header con color de lotería */}
+        <header 
+          className="px-4 py-3 text-white"
+          style={{ backgroundColor: lottery.color }}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {getLotteryLogo(lottery.id) && (
                 <img 
                   src={getLotteryLogo(lottery.id)!} 
-                  alt={`Logo ${lottery.name}`}
-                  className="w-8 h-8 object-contain bg-white/10 rounded p-1"
+                  alt=""
+                  className="w-7 h-7 object-contain bg-white/20 rounded-lg p-0.5 flex-shrink-0"
+                  loading="lazy"
                 />
               )}
-              <h3 className="font-semibold truncate">{lottery.name}</h3>
+              <h3 className="font-semibold truncate text-sm sm:text-base">
+                {lottery.name}
+              </h3>
             </div>
-            {featured && <span className="bg-white/20 text-xs px-2 py-1 rounded-full">Hoy</span>}
+            {featured && (
+              <span className="bg-white/25 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                Hoy
+              </span>
+            )}
           </div>
-        </div>
+        </header>
 
+        {/* Contenido principal */}
         <div className="p-4">
           {hasResult && lottery.latestResult ? (
-            <>
-              <p className="text-sm text-gray-500 mb-3">{formatDate(lottery.latestResult.date)}</p>
+            <div className="space-y-3">
+              {/* Fecha del sorteo */}
+              <time className="text-xs text-gray-500 block">
+                {formatDate(lottery.latestResult.date)}
+              </time>
               
-              {/* Sistema de visualización diferenciado */}
-              <div className="mb-3">
+              {/* Visualización del resultado - SIN DUPLICADOS */}
+              <div className="flex justify-center">
                 <LotteryDisplay 
                   lottery={lottery} 
                   result={lottery.latestResult} 
@@ -50,61 +73,50 @@ export default function ResultCard({ lottery, featured = false }: ResultCardProp
                 />
               </div>
 
-              {/* Para loterías tradicionales, mostrar terminología correcta */}
-              {isTraditionalLottery && lottery.latestResult.series && (
-                <div className="text-sm bg-gray-50 rounded-lg p-2 mt-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Décimo ganador:</span>
-                    <span className="font-bold" style={{ color: lottery.color }}>
-                      {lottery.latestResult.numbers[0].toString().padStart(4, '0')}
+              {/* Premio/Acumulado - Solo si existe */}
+              {lottery.latestResult.prize && (
+                <div className={`
+                  text-sm rounded-lg p-2.5 mt-2
+                  ${isBaloto ? 'bg-green-50' : 'bg-gray-50'}
+                `}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-gray-600 text-xs">
+                      {isBaloto 
+                        ? (lottery.id === 'baloto' ? '💰 Acumulado' : '🎁 Premio')
+                        : '💰 Premio Mayor'
+                      }
                     </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Serie:</span>
-                    <span className="font-bold" style={{ color: lottery.color }}>
-                      {lottery.latestResult.series.toString().padStart(3, '0')}
+                    <span className={`font-bold ${isBaloto ? 'text-green-600' : 'text-gray-800'}`}>
+                      {lottery.latestResult.prize}
                     </span>
                   </div>
                 </div>
               )}
-
-              {/* Para Baloto/Revancha, mostrar acumulado */}
-              {(lottery.id === 'baloto' || lottery.id === 'baloto-revancha') && lottery.latestResult.prize && (
-                <div className="mt-2 text-sm bg-green-50 rounded-lg p-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">
-                      {lottery.id === 'baloto' ? 'Acumulado:' : 'Premio:'}
-                    </span>
-                    <span className="font-semibold text-green-600">{lottery.latestResult.prize}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Premio general para otras loterías */}
-              {lottery.latestResult.prize && lottery.id !== 'baloto' && lottery.id !== 'baloto-revancha' && (
-                <div className="mt-2 text-sm">
-                  <span className="text-gray-500">Premio Mayor: </span>
-                  <span className="font-semibold text-green-600">{lottery.latestResult.prize}</span>
-                </div>
-              )}
-            </>
+            </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">Sin resultados aún</p>
-              <p className="text-xs text-gray-300 mt-1">
-                {lottery.drawDays.join(', ')} - {lottery.drawTime}
+            /* Estado vacío - Sin resultados */
+            <div className="text-center py-6">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                <span className="text-2xl">🎲</span>
+              </div>
+              <p className="text-gray-500 text-sm font-medium">
+                Esperando sorteo
               </p>
-              {isTraditionalLottery && (
-                <p className="text-xs text-gray-400 mt-1">Sorteo de billetes y décimos</p>
-              )}
+              <p className="text-xs text-gray-400 mt-1">
+                {lottery.drawDays.join(', ')} • {lottery.drawTime}
+              </p>
             </div>
           )}
         </div>
 
-        <div className="px-4 py-2 bg-gray-50 border-t">
-          <span className="text-sm text-colombia-blue hover:underline">Ver detalles →</span>
-        </div>
-      </div>
+        {/* Footer con CTA */}
+        <footer className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
+          <span className="text-sm text-colombia-blue font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+            Ver detalles 
+            <span aria-hidden="true">→</span>
+          </span>
+        </footer>
+      </article>
     </Link>
   );
 }
