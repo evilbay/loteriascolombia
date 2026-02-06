@@ -172,5 +172,94 @@ export function formatDate(dateString: string): string {
 export function formatLotteryNumber(num: number): string {
   return num.toString().padStart(2, '0');
 }
+
+// Tipo para resultados combinados de Baloto + Revancha
+export interface BalotoRevanchaCombined {
+  date: string;
+  drawNumber?: string;
+  baloto: {
+    numbers: number[];
+    superbalota: number;
+  } | null;
+  revancha: {
+    numbers: number[];
+    revancha: number;
+  } | null;
+}
+
+// Obtener historial combinado de Baloto + Revancha (mismo sorteo, misma fecha)
+export async function getBalotoRevanchaHistory(): Promise<BalotoRevanchaCombined[]> {
+  try {
+    // Obtener todos los resultados de Baloto y Revancha
+    const { data: balotoData, error: balotoError } = await supabase
+      .from('results')
+      .select('*')
+      .eq('lottery_id', 'baloto')
+      .order('draw_date', { ascending: false });
+
+    const { data: revanchaData, error: revanchaError } = await supabase
+      .from('results')
+      .select('*')
+      .eq('lottery_id', 'baloto-revancha')
+      .order('draw_date', { ascending: false });
+
+    if (balotoError || revanchaError) {
+      console.error('Error fetching Baloto/Revancha:', balotoError?.message, revanchaError?.message);
+      return [];
+    }
+
+    // Crear mapa de Revancha por fecha
+    const revanchaByDate = new Map<string, DbResult>();
+    for (const r of (revanchaData || [])) {
+      revanchaByDate.set(r.draw_date, r);
+    }
+
+    // Combinar por fecha
+    const combined: BalotoRevanchaCombined[] = [];
+    const processedDates = new Set<string>();
+
+    // Primero procesar todos los resultados de Baloto
+    for (const b of (balotoData || [])) {
+      processedDates.add(b.draw_date);
+      const r = revanchaByDate.get(b.draw_date);
+      
+      combined.push({
+        date: b.draw_date,
+        drawNumber: b.draw_number,
+        baloto: {
+          numbers: b.numbers.main || [],
+          superbalota: b.numbers.superbalota || 0,
+        },
+        revancha: r ? {
+          numbers: r.numbers.main || [],
+          revancha: r.numbers.revancha || 0,
+        } : null,
+      });
+    }
+
+    // Agregar Revanchas huérfanas (sin Baloto correspondiente)
+    for (const r of (revanchaData || [])) {
+      if (!processedDates.has(r.draw_date)) {
+        combined.push({
+          date: r.draw_date,
+          drawNumber: r.draw_number,
+          baloto: null,
+          revancha: {
+            numbers: r.numbers.main || [],
+            revancha: r.numbers.revancha || 0,
+          },
+        });
+      }
+    }
+
+    // Ordenar por fecha descendente
+    combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return combined;
+  } catch (err) {
+    console.error('Error fetching Baloto+Revancha history:', err);
+    return [];
+  }
+}
 // Force redeploy Sat Jan 31 23:20:50 UTC 2026
 // force deploy Sat Jan 31 23:23:17 UTC 2026
