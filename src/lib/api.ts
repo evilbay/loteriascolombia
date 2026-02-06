@@ -23,23 +23,21 @@ const frontendToDbMapping: Record<string, string[]> = {
 };
 
 function convertDbResultToLotteryResult(dbResult: DbResult, frontendLotteryId: string): LotteryResult {
-  // Construir array de números
-  let numbers = [...(dbResult.numbers.main || [])];
+  // Números principales (sin superbalota/revancha)
+  const numbers = [...(dbResult.numbers.main || [])];
   
-  // Para Baloto, agregar la superbalota al array de números
-  if (dbResult.numbers.superbalota !== undefined) {
-    numbers.push(dbResult.numbers.superbalota);
-  }
-
   return {
     id: dbResult.id.toString(),
     lotteryId: frontendLotteryId,
     date: dbResult.draw_date,
-    numbers,
+    numbers,  // Solo los 5 números principales
     series: dbResult.numbers.series,
-    prize: undefined, // Se puede agregar desde prizes si está disponible
+    prize: undefined,
     createdAt: dbResult.created_at,
     drawNumber: dbResult.draw_number,
+    // Campos específicos para Baloto/Revancha
+    superbalota: dbResult.numbers.superbalota,
+    revancha: dbResult.numbers.revancha,
   };
 }
 

@@ -10,10 +10,35 @@ export default async function HomePage() {
   const lotteriesWithResults = await getLatestResults();
   const todayLotteries = getTodayLotteries();
 
-  // Buscar Baloto para card unificada
+  // Buscar Baloto y Revancha para card unificada
   const baloto = lotteriesWithResults.find(l => l.id === 'baloto');
   const balotoRevancha = lotteriesWithResults.find(l => l.id === 'baloto-revancha');
-  const showBalotoUnificado = baloto?.latestResult && baloto.latestResult.numbers.length >= 6;
+  
+  // Verificar que ambos tienen resultados
+  const showBalotoUnificado = baloto?.latestResult && balotoRevancha?.latestResult;
+
+  // Extraer números de Baloto (puede ser array o objeto con .main)
+  const getBalotoNumbers = () => {
+    const result = baloto?.latestResult;
+    if (!result) return { main: [], superbalota: 0 };
+    return { 
+      main: result.numbers || [], 
+      superbalota: result.superbalota || 0 
+    };
+  };
+
+  // Extraer números de Revancha
+  const getRevanchaNumbers = () => {
+    const result = balotoRevancha?.latestResult;
+    if (!result) return { main: [], revancha: 0 };
+    return { 
+      main: result.numbers || [], 
+      revancha: result.revancha || 0 
+    };
+  };
+
+  const balotoNums = getBalotoNumbers();
+  const revanchaNums = getRevanchaNumbers();
 
   // Filtrar Baloto y Revancha de las listas si vamos a mostrar card unificada
   const filteredTodayLotteries = showBalotoUnificado 
@@ -51,9 +76,10 @@ export default async function HomePage() {
             <BalotoRevanchaCard
               fecha={baloto.latestResult.date}
               sorteoNumero={baloto.latestResult.drawNumber}
-              numeros={baloto.latestResult.numbers.slice(0, 5)}
-              superbalota={baloto.latestResult.numbers[5]}
-              revancha={baloto.latestResult.numbers[6] || baloto.latestResult.numbers[5]}
+              numerosBaloto={balotoNums.main}
+              superbalota={balotoNums.superbalota}
+              numerosRevancha={revanchaNums.main}
+              revancha={revanchaNums.revancha}
               acumuladoBaloto={baloto.latestResult.prize}
               acumuladoRevancha={balotoRevancha?.latestResult?.prize}
               featured
@@ -61,12 +87,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* PUBLICIDAD DESACTIVADA 
-      <div className="container mx-auto px-4 py-4">
-        <div className="ad-container"><span>Espacio publicitario</span></div>
-      </div>
-      */}
 
       {filteredTodayLotteries.length > 0 && (
         <section className="container mx-auto px-4 py-6">
@@ -92,38 +112,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* PUBLICIDAD DESACTIVADA
-      <div className="container mx-auto px-4 py-4">
-        <div className="ad-container ad-container-large"><span>Espacio publicitario</span></div>
-      </div>
-      */}
-
-      <section className="bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">¿Por qué Loterías Colombia?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-              <div className="w-12 h-12 bg-colombia-blue rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-xl">⚡</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Resultados al Instante</h3>
-              <p className="text-gray-600">Actualizamos los resultados apenas salen los sorteos</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-              <div className="w-12 h-12 bg-colombia-yellow rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-gray-800 text-xl">✓</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Todas las Loterías</h3>
-              <p className="text-gray-600">Bogotá, Medellín, Baloto, Cruz Roja y todas las demás</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-              <div className="w-12 h-12 bg-colombia-red rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-xl">📱</span>
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Mobile First</h3>
-              <p className="text-gray-600">Diseñado para verse perfecto en tu celular</p>
-            </div>
-          </div>
+      <section className="container mx-auto px-4 py-8">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 md:p-8 text-white text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">¿Ganaste?</h2>
+          <p className="text-blue-100 mb-6 max-w-xl mx-auto">
+            Verifica tus números y descubre si eres el próximo ganador
+          </p>
+          <a 
+            href="/gane" 
+            className="inline-block bg-yellow-400 text-blue-900 font-bold py-3 px-8 rounded-lg hover:bg-yellow-300 transition-colors"
+          >
+            Verificar mis números
+          </a>
         </div>
       </section>
     </div>

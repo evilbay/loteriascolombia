@@ -34,6 +34,7 @@ export interface DbResult {
     main: number[];
     series?: string;
     superbalota?: number;
+    revancha?: number;
   };
   prizes: Record<string, unknown>;
   raw_data: Record<string, unknown>;
